@@ -1,4 +1,5 @@
 package com.elvis.elias; //places this class in the projects package
+import java.util.Map;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -7,7 +8,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class HealthController {
 
     @GetMapping("/api/health") //connects an HTTP GET request at that path to the methods below it
-    public String health() { //runs when that request arrives and retuns our message 
-        return "Elias is running";
-    }
+public Map<String, String> health() { //the keys and values are strings Map.of() creates those key value pairs and spriong converts the map into JSON 
+    return Map.of(
+        "status", "UP",
+        "application", "Elias"
+    );
 }
+}
+//.\mvnw.cmd spring-boot:run to start the backend
