@@ -22,7 +22,11 @@ public class ReminderService {
 
     public Reminder createReminder(String title, OffsetDateTime remindAt) {
         if (title == null || title.isBlank()) {
-            throw new IllegalArgumentException("Title must not be blank"); //thorw stops this method and reports the invalid input
+            throw new IllegalArgumentException("Title must not be blank"); // thorw stops this method and reports the
+                                                                           // invalid input
+        }
+        if (remindAt == null || !remindAt.isAfter(OffsetDateTime.now())) {
+            throw new IllegalArgumentException("Reminder time must be in the future");
         }
         Reminder reminder = new Reminder(nextId, title, remindAt);
         reminders.add(reminder);
