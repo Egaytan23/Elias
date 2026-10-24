@@ -15,4 +15,3 @@ public Map<String, String> health() { //the keys and values are strings Map.of()
     );
 }
 }
-//.\mvnw.cmd spring-boot:run to start the backend
