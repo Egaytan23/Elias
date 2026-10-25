@@ -1,6 +1,16 @@
 package com.elvis.elias;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -66,12 +76,44 @@ class ReminderServiceTest {
     @Test
     void rejectsNullTimeWithoutStoringReminder() {
         ReminderService service = new ReminderService();
-       
 
         assertThrows(IllegalArgumentException.class, () -> { // gives JUnit an action to run and check this is
                                                              // called a lambda
             service.createReminder("Call the dentist", null);
         });
         assertTrue(service.getReminders().isEmpty());
+    }
+
+    @Test
+    void concurrentCreationStoresRemindersWithUniqueIds() throws Exception {
+        ReminderService service = new ReminderService();
+        OffsetDateTime futureTime = OffsetDateTime.now().plusDays(1);
+
+        ExecutorService workers = Executors.newFixedThreadPool(4);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<Reminder>> results = new ArrayList<>();
+
+        try {
+            for (int i = 0; i < 20; i++) {
+                results.add(workers.submit(() -> {
+                    start.await();
+                    return service.createReminder("Test reminder", futureTime);
+                }));
+            }
+
+            start.countDown();
+
+            Set<Long> uniqueIds = new HashSet<>();
+
+            for (Future<Reminder> result : results) {
+                Reminder reminder = result.get(5, TimeUnit.SECONDS);
+                uniqueIds.add(reminder.getId());
+            }
+
+            assertEquals(20, service.getReminders().size());
+            assertEquals(20, uniqueIds.size());
+        } finally {
+            workers.shutdownNow();
+        }
     }
 }
